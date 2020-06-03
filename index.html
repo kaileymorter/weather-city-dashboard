@@ -9,26 +9,33 @@
     <title>Weather Dashboard</title>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-primary justify-content-center">
+    <nav class="navbar navbar-dark bg-dark justify-content-center">
         <a class="navbar-brand text-light" href="#">Weather Dashboard</a>
     </nav>
 
     <main>
-        <div class="container m-3">
+        <div class="m-3">
             <!--First column-->
             <div class="row">
-                <div class="col-sm-3">
-                   <h3>Search for a City:</h2>
-                </div>
-            </div>
+                <div class="col-sm-3 bg-light">
+                    <div>
+                        <h3>Search for a City:</h2>
+                        <input id="search-city" type="text" class="form-control" placeholder="Search City">
+                        <button onclick="getCurrentWeather()" class="btn btn-primary mt-3" id="search-button">Search</button>
+                    </div>
 
-            <!--Second column-->
-            <div class="row">
+                    <div class="mt-4">
+                        <h4>Search History</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item">list of recent searches</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="col-sm-9">
-
+                    <h3>Weather Content</h3>
                 </div>
             </div>
-
         </div>
     </main>
     
