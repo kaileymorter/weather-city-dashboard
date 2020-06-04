@@ -1,3 +1,19 @@
 nav a {
     font-size: 34px !important;
 }
+
+.index-green {
+    background-color: #00892F;
+}
+
+.index-yellow {
+    background-color: #EEDC00;
+}
+
+.index-orange {
+    background-color: #FF6C2F;
+}
+
+.index-red {
+    background-color: #CD001A;
+}
