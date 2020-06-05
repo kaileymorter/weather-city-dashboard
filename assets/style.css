@@ -2,6 +2,10 @@ nav a {
     font-size: 34px !important;
 }
 
+.capitalize {
+    text-transform: capitalize;   
+  }
+
 .index-green {
     background-color: #00892F;
 }
@@ -17,3 +21,14 @@ nav a {
 .index-red {
     background-color: #CD001A;
 }
+
+.index-black {
+    background-color: black;
+}
+
+.icon {
+    width: 100px;
+    object-fit: cover;
+    overflow: hidden;
+}
+

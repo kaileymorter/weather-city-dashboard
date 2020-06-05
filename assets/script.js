@@ -2,19 +2,23 @@ var date = (moment().format("l"));
 var userFormEl = document.querySelector("#user-form");
 var cityInputEl = document.querySelector("#search-city");
 //current weather elements
+var currentWeatherEl = document.querySelector("#current-weather");
 var cityNameEl = document.querySelector("#city-name");
 var tempEl = document.querySelector("#temperature");
 var humidityEl = document.querySelector("#humidity");
 var windSpeedEl = document.querySelector("#wind-speed");
 var uvIndexEl = document.querySelector("#uv-index");
 //five-day forecast element
+var forecastHeader = document.querySelector("#forecast-header")
 var forecastEl = document.querySelector("#forecast")
-
+//storage array
+var cityHistory = [];
 
 var formSubmitHandler = function(event){
     event.preventDefault()
-    
+
     var city = cityInputEl.value.trim();
+    cityInputEl.value = "";
 
     if (city) {
         getCurrentWeather(city);
@@ -22,6 +26,11 @@ var formSubmitHandler = function(event){
     } else {
         alert("Please enter a valid city name!");
     }
+
+    cityHistory.push(city);
+    console.log(cityHistory);
+    localStorage.setItem("city", JSON.stringify(cityHistory));
+
 };
 
 //get the current weather
@@ -32,14 +41,15 @@ var getCurrentWeather = function(city){
     fetch(apiUrl).then(function(response){
         if (response.ok) {
             response.json().then(function(data){
-                displayCurrentWeather(data, city)
+                displayCurrentWeather(data, city);
+                searchHistory(city);
             });
         } else {
             alert("Error: " + response.statusText);
         }
     })
     .catch(function(error){
-        alert("Unable to connect to GitHub");
+        alert("Unable to connect to openweathermap.org");
     });   
 };
 
@@ -58,6 +68,9 @@ var getFiveDayForecast = function(city) {
 //display the current weather
 var displayCurrentWeather = function(data, searchTerm){
 
+    //add border to the current weather element
+    currentWeatherEl.classList = "border p-4";
+
     //convert temp from kelvin to fahrenheit
     var temp = Math.floor((data.main.temp -273.15) * 9/5 + 32);
 
@@ -67,39 +80,51 @@ var displayCurrentWeather = function(data, searchTerm){
     icon.setAttribute('src', weatherIcon);
 
     //add weather data to page
-    cityNameEl.textContent = searchTerm + " (" + date + ")";
+    cityNameEl.textContent = "City: " + searchTerm + " (" + date + ")";
     cityNameEl.appendChild(icon)
-    tempEl.textContent = temp + " °F"
-    humidityEl.textContent = data.main.humidity + "%";
-    windSpeedEl.textContent = data.wind.speed + " MPH";
-
+    tempEl.textContent = "Temperature: " + temp + " °F"
+    humidityEl.textContent = "Humidity: " + data.main.humidity + "%";
+    windSpeedEl.textContent = " Wind Speed: " + data.wind.speed + " MPH";
     //get current uv index
     var uvIndexUrl = "http://api.openweathermap.org/data/2.5/uvi?appid=6b9401ca72048cb12acce22eafd311aa&lat=" + data.coord.lat + "&lon=" + data.coord.lon;
     fetch(uvIndexUrl).then(function(response){
         if (response.ok){
             response.json().then(function(data){
-                var uvIndex = data.value
+                //create variable to hold the value of the uv index
+                var uvIndex = data.value;
+                //insert title text on the uv index element
+                uvIndexEl.textContent = "UV Index: ";
+                //create a span element for the uv index value
+                var uvIndexData = document.createElement("span")
+                //insert the uv index data in the span element created
+                uvIndexData.textContent = uvIndex;
+                //append the span element to the uv index title element
+                uvIndexEl.appendChild(uvIndexData);
 
-                if (uvIndex <= 3){
-                    uvIndexEl.classList = "index-green text-light p-1";
-                } else if (uvIndex >= 3 || uvIndex <= 6){
-                    uvIndexEl.classList = "index-yellow text-light p-1";
-                } else if (uvIndex >= 6 || uvIndex <= 8){
-                    uvIndexEl.classList = "index-orange text-light p-1";
+                //condition for the uv index background color
+                if (uvIndex < 3){
+                    uvIndexData.classList = "index-green text-light p-1";
+                } else if (uvIndex < 6){
+                    uvIndexData.classList = "index-yellow text-light p-1";
+                } else if (uvIndex < 8){
+                    uvIndexData.classList = "index-orange text-light p-1";
+                } else if (uvIndex < 11) {
+                    uvIndexData.classList = "index-red text-light p-1";
                 } else {
-                    uvIndexEl.classList = "index-red text-light p-1";
-                };
-
-                uvIndexEl.textContent = uvIndex
+                    uvIndexData.classList = "index-black text-light p-1";
+                }
             });
         }
     });
 
-}
+};
 
 //display the five day forecast
-var displayFiveDayForecast = function(data, searchTerm){
+var displayFiveDayForecast = function(data){
 
+    //forecast header text
+    forecastHeader.textContent = "5 Day Forecast:"
+    //clear old weather data
     forecastEl.textContent = "";
 
     for(var i = 0; i < data.list.length; i++){
@@ -107,7 +132,7 @@ var displayFiveDayForecast = function(data, searchTerm){
         if (data.list[i].dt_txt.indexOf("15:00:00") !== -1) {
             //create five day forecast element
             var fiveDayEl = document.createElement("div")
-            fiveDayEl.classList = "col-sm bg-primary text-light card mr-2 p-3";
+            fiveDayEl.classList = "col-sm bg-primary text-light card mr-2 mb-3 p-3";
             
             //add date to the forecast element
             var date = document.createElement("h4")
@@ -118,7 +143,7 @@ var displayFiveDayForecast = function(data, searchTerm){
             var weatherIcon = "http://openweathermap.org/img/wn/" + data.list[i].weather[0].icon + "@2x.png"
             var icon = document.createElement('img');
             icon.setAttribute("src", weatherIcon);
-            icon.setAttribute("style", "width:125px")
+            icon.className = "icon";
             fiveDayEl.appendChild(icon);
 
             //add temp to the forecast element
@@ -137,4 +162,49 @@ var displayFiveDayForecast = function(data, searchTerm){
 
 }
 
+//display search history
+var searchHistory = function(searchTerm){
+
+    var searchHeaderEl = document.querySelector("#search-header");
+    searchHeaderEl.textContent = "Search History:";
+
+    var searchHistoryEl = document.querySelector("#search-list");
+    
+    //add city to search history
+    var cityEl = document.createElement("a")
+    cityEl.textContent = searchTerm;
+    cityEl.setAttribute("href", "#" );
+    cityEl.classList = "list-group-item list-group-item-action";
+    searchHistoryEl.appendChild(cityEl);
+    
+}
+
+var getListWeather = function(city){
+
+    var apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=6b9401ca72048cb12acce22eafd311aa";
+
+    fetch(apiUrl).then(function(response){
+        if (response.ok) {
+            response.json().then(function(data){
+                displayCurrentWeather(data, city);
+            });
+        } else {
+            alert("Error: " + response.statusText);
+        }
+    })
+    .catch(function(error){
+        alert("Unable to connect to openweathermap.org");
+    });   
+};
+
+var searchHistoryHandler = function(event){
+    console.log(event.target.innerText);
+
+    var listTerm = event.target.innerText;
+    getListWeather(listTerm);
+    getFiveDayForecast(listTerm);
+
+}
+
+document.getElementById("search-list").addEventListener("click", searchHistoryHandler);
 userFormEl.addEventListener("submit", formSubmitHandler);
